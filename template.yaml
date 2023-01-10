@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  MockAPIApp
+
+  SAM Template for MockAPIApp
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  GetAllProjectsFunctionToTableConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: GetAllProjectsFunction
+      Destination:
+        Id: MockAPITable
+      Permissions:
+        - Read
+
+  GetProjectByIDFunctionToTableConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: GetProjectByIDFunction
+      Destination:
+        Id: MockAPITable
+      Permissions:
+        - Read
+
+  PostProjectFunctionToTableConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: PostProjectFunction
+      Destination:
+        Id: MockAPITable
+      Permissions:
+        - Write
+
+  GetAllProjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAllProjectsFunction
+      Handler: src/handlers/get_project_list.get_project_list_handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 100
+      Description: Projects list using get request.
+      Environment:
+        Variables:
+          MOCK_API_TABLE: !Ref MockAPITable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /projects
+            Method: GET
+
+  GetProjectByIDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetProjectByIDFunction
+      Handler: src/handlers/get_project_detail.get_project_detail_handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 100
+      Description: Project detail using get request.
+      Environment:
+        Variables:
+          MOCK_API_TABLE: !Ref MockAPITable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /projects/{id}
+            Method: GET
+
+  PostProjectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PostProjectFunction
+      Handler: src/handlers/post_project.post_project_handler
+      Runtime: python3.9
+      MemorySize: 128
+      Timeout: 100
+      Description: Create a new project
+      Environment:
+        Variables:
+          MOCK_API_TABLE: !Ref MockAPITable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /projects
+            Method: POST
+
+  MockAPITable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: MockAPITable
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

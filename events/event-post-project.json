@@ -1,0 +1,15 @@
+{
+  "id": "0",
+  "title": "Blog App",
+  "description": "Frontend for blog app",
+  "models": [
+      {
+          "id": "0",
+          "field": "users"
+      },
+      {
+          "id": "1",
+          "field": "posts"
+      }
+    ]
+}
